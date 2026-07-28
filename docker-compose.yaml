@@ -14,4 +14,7 @@ services:
     ports:
       - "${PORT:-3481}:3481"
     volumes:
-      - ./data:/app/data
+      - ai_redraw_data:/app/data
+
+volumes:
+  ai_redraw_data:
