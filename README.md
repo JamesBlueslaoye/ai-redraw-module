@@ -32,7 +32,7 @@ npm start
 
 4. 打开页面
 
-http://127.0.0.1:3480
+http://127.0.0.1:3481
 
 ## NAS 部署说明（适合 Synology / 其他 Linux NAS）
 
@@ -49,7 +49,7 @@ cp .env.example .env
 
 ```bash
 HOST=0.0.0.0
-PORT=3480
+PORT=3481
 AI_REDRAW_PROVIDER=nanobanana_ai
 NANO_BANANA_API_KEY=your_key
 ```
@@ -61,9 +61,9 @@ chmod +x scripts/deploy-nas.sh
 
 6. 在局域网里访问：
 
-http://<NAS_IP>:3480/
+http://<NAS_IP>:3481/
 
-7. 如果 NAS 自带防火墙/端口转发，请放行 3480 端口。
+7. 如果 NAS 自带防火墙/端口转发，请放行 3481 端口。
 
 ### 说明
 

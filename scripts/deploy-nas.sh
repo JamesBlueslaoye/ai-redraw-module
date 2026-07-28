@@ -20,7 +20,7 @@ else
 fi
 
 NODE_ENV=${NODE_ENV:-production}
-PORT=${PORT:-3480}
+PORT=${PORT:-3481}
 HOST=${HOST:-0.0.0.0}
 
 echo "Starting AI redraw service on $HOST:$PORT"
