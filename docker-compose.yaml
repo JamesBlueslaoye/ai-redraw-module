@@ -2,13 +2,18 @@ services:
   ai-redraw:
     image: ghcr.io/jamesblueslaoye/ai-redraw-module:main
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       HOST: 0.0.0.0
       PORT: 3481
-      AI_REDRAW_PROVIDER: nanobanana_ai
-      NANO_BANANA_API_KEY: your_key
+      AI_REDRAW_PROVIDER: qwen
+      QWEN_MODEL: qwen-image-2.0
       DEMO_USER_ID: demo-user
     ports:
       - "3481:3481"
     volumes:
-      - /Volumes/docker/AIredrawtool/data:/app/data
+      - ai_redraw_data:/app/data
+
+volumes:
+  ai_redraw_data:
