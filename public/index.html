@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI 重绘模块 Demo</title>
+  <link rel="stylesheet" href="/public/ai-redraw.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="head">
+      <h1>AI 重绘模块 Demo</h1>
+      <p>上传图片后调用独立 API 进行重绘并保存历史。</p>
+    </header>
+
+    <section class="toolbar">
+      <label>
+        方案
+        <select id="preset">
+          <option value="enhance">光影质感增强</option>
+          <option value="angle">微角度视角（约 15°）</option>
+          <option value="angle-45">强角度视角（约 45°）</option>
+        </select>
+      </label>
+      <label>
+        分辨率
+        <select id="resolution">
+          <option value="auto">自动 · 约 1K</option>
+          <option value="1024">1K</option>
+          <option value="1536" selected>1.5K（推荐）</option>
+          <option value="2048">2K</option>
+        </select>
+      </label>
+      <button id="runBtn">开始重绘</button>
+      <span id="status"></span>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>原图</h2>
+        <input type="file" id="fileInput" accept="image/*" />
+        <div class="preview"><img id="srcImg" alt="source" /></div>
+      </article>
+      <article class="card">
+        <h2>结果</h2>
+        <div class="result-actions">
+          <button id="downloadBtn" type="button" disabled>下载结果</button>
+        </div>
+        <div class="preview"><img id="outImg" alt="result" /></div>
+      </article>
+    </section>
+
+    <section class="card history">
+      <h2>历史记录</h2>
+      <ul id="historyList"></ul>
+    </section>
+  </main>
+
+  <script src="/public/ai-redraw.client.js"></script>
+</body>
+</html>
