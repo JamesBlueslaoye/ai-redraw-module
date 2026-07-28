@@ -3,6 +3,7 @@ const state = {
   mimeType: 'image/png',
   width: 0,
   height: 0,
+  resultUrl: '',
   resultDataUrl: '',
   resultMimeType: 'image/png',
 };
@@ -50,6 +51,27 @@ function apiUrl(path) {
   return `${base}${path}`;
 }
 
+function setResultImage(primaryUrl, fallbackUrl) {
+  const fallback = fallbackUrl && fallbackUrl !== primaryUrl ? fallbackUrl : '';
+  let usedFallback = false;
+
+  outImg.onerror = () => {
+    if (!usedFallback && fallback) {
+      usedFallback = true;
+      outImg.src = fallback;
+      return;
+    }
+    setStatus('结果图片加载失败', true);
+  };
+
+  outImg.onload = () => {
+    outImg.onerror = null;
+    setStatus('重绘完成');
+  };
+
+  outImg.src = primaryUrl || fallback || '';
+}
+
 async function loadHistory() {
   try {
     const res = await fetch(apiUrl('/api/tools/ai-redraw/history'), {
@@ -62,7 +84,8 @@ async function loadHistory() {
       const li = document.createElement('li');
       li.innerHTML = `<img src="${it.resultUrl}" alt="history"><p>${it.preset || 'enhance'} · ${new Date(it.createdAt).toLocaleString()}</p>`;
       li.addEventListener('click', () => {
-        outImg.src = it.resultUrl;
+        setResultImage(it.resultUrl, state.resultDataUrl);
+        state.resultUrl = it.resultUrl;
         state.resultDataUrl = it.resultUrl;
         state.resultMimeType = 'image/png';
         downloadBtn.disabled = false;
@@ -87,6 +110,7 @@ fileInput.addEventListener('change', async (e) => {
   state.height = size.height;
   const payload = toBase64(state.dataUrl);
   state.mimeType = payload.mimeType;
+  state.resultUrl = '';
   state.resultDataUrl = '';
   state.resultMimeType = 'image/png';
   downloadBtn.disabled = true;
@@ -102,7 +126,7 @@ downloadBtn.addEventListener('click', () => {
   }
 
   const link = document.createElement('a');
-  link.href = state.resultDataUrl;
+  link.href = state.resultUrl || state.resultDataUrl;
   link.download = `ai-redraw-${Date.now()}.${state.resultMimeType === 'image/jpeg' ? 'jpg' : 'png'}`;
   document.body.appendChild(link);
   link.click();
@@ -140,11 +164,12 @@ runBtn.addEventListener('click', async () => {
     if (!res.ok) throw new Error(data.error || `请求失败（${res.status}）`);
 
     const resultDataUrl = `data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`;
-    outImg.src = resultDataUrl;
+    const resultUrl = data.historyItem?.resultUrl || '';
+    state.resultUrl = resultUrl;
     state.resultDataUrl = resultDataUrl;
     state.resultMimeType = data.mimeType || 'image/png';
     downloadBtn.disabled = false;
-    setStatus('重绘完成');
+    setResultImage(resultUrl || resultDataUrl, resultUrl ? resultDataUrl : '');
     await loadHistory();
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
