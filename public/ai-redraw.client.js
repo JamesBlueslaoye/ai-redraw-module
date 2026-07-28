@@ -6,6 +6,7 @@ const state = {
   resultUrl: '',
   resultDataUrl: '',
   resultMimeType: 'image/png',
+  resultObjectUrl: '',
 };
 
 const fileInput = document.getElementById('fileInput');
@@ -51,25 +52,53 @@ function apiUrl(path) {
   return `${base}${path}`;
 }
 
-function setResultImage(primaryUrl, fallbackUrl) {
-  const fallback = fallbackUrl && fallbackUrl !== primaryUrl ? fallbackUrl : '';
-  let usedFallback = false;
+function revokeResultObjectUrl() {
+  if (!state.resultObjectUrl) return;
+  URL.revokeObjectURL(state.resultObjectUrl);
+  state.resultObjectUrl = '';
+}
 
-  outImg.onerror = () => {
-    if (!usedFallback && fallback) {
-      usedFallback = true;
-      outImg.src = fallback;
+async function loadImageSource(url) {
+  if (!url) throw new Error('缺少结果图片地址');
+  if (url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+
+  const res = await fetch(apiUrl(url), {
+    credentials: 'same-origin',
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    throw new Error(`结果图片请求失败（${res.status}）`);
+  }
+
+  const blob = await res.blob();
+  if (!blob.type.startsWith('image/')) {
+    throw new Error(`结果资源不是图片：${blob.type || 'unknown'}`);
+  }
+
+  revokeResultObjectUrl();
+  state.resultObjectUrl = URL.createObjectURL(blob);
+  return state.resultObjectUrl;
+}
+
+async function setResultImage(primaryUrl, fallbackUrl) {
+  const targets = [primaryUrl, fallbackUrl].filter(Boolean);
+  let lastError = null;
+
+  for (const target of targets) {
+    try {
+      outImg.src = await loadImageSource(target);
+      setStatus('重绘完成');
       return;
+    } catch (error) {
+      lastError = error;
     }
-    setStatus('结果图片加载失败', true);
-  };
+  }
 
-  outImg.onload = () => {
-    outImg.onerror = null;
-    setStatus('重绘完成');
-  };
-
-  outImg.src = primaryUrl || fallback || '';
+  outImg.src = '';
+  setStatus(lastError instanceof Error ? lastError.message : '结果图片加载失败', true);
 }
 
 async function loadHistory() {
@@ -83,8 +112,8 @@ async function loadHistory() {
     items.forEach((it) => {
       const li = document.createElement('li');
       li.innerHTML = `<img src="${it.resultUrl}" alt="history"><p>${it.preset || 'enhance'} · ${new Date(it.createdAt).toLocaleString()}</p>`;
-      li.addEventListener('click', () => {
-        setResultImage(it.resultUrl, state.resultDataUrl);
+      li.addEventListener('click', async () => {
+        await setResultImage(it.resultUrl, state.resultDataUrl);
         state.resultUrl = it.resultUrl;
         state.resultDataUrl = it.resultUrl;
         state.resultMimeType = 'image/png';
@@ -113,6 +142,7 @@ fileInput.addEventListener('change', async (e) => {
   state.resultUrl = '';
   state.resultDataUrl = '';
   state.resultMimeType = 'image/png';
+  revokeResultObjectUrl();
   downloadBtn.disabled = true;
   srcImg.src = state.dataUrl;
   outImg.src = '';
@@ -169,7 +199,7 @@ runBtn.addEventListener('click', async () => {
     state.resultDataUrl = resultDataUrl;
     state.resultMimeType = data.mimeType || 'image/png';
     downloadBtn.disabled = false;
-    setResultImage(resultUrl || resultDataUrl, resultUrl ? resultDataUrl : '');
+    await setResultImage(resultUrl || resultDataUrl, resultUrl ? resultDataUrl : '');
     await loadHistory();
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
