@@ -1,15 +1,18 @@
 services:
   ai-redraw:
-    image: ghcr.io/jamesblueslaoye/ai-redraw-module:main
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-redraw-module:local
     restart: unless-stopped
     env_file:
       - .env
     environment:
       HOST: 0.0.0.0
       PORT: 3481
-      AI_REDRAW_PROVIDER: qwen
-      QWEN_MODEL: qwen-image-2.0
       DEMO_USER_ID: demo-user
+      AI_REDRAW_PROVIDER: ${AI_REDRAW_PROVIDER:-qwen}
+      QWEN_MODEL: ${QWEN_MODEL:-qwen-image-2.0}
     ports:
       - "3481:3481"
     volumes:

@@ -34,42 +34,52 @@ npm start
 
 http://127.0.0.1:3481
 
-## NAS 部署说明（适合 Synology / 其他 Linux NAS）
+## NAS 部署工作流（本地推送 -> NAS 本地构建）
 
-1. 把项目目录上传到 NAS，进入项目根目录。
-2. 安装依赖：
+这套流程不再走 GHCR 镜像拉取，而是：
 
-npm install
+1. 本地开发
+2. 把项目同步到 NAS
+3. NAS 上用同一份 `docker-compose.yaml` 本地 `build`
+4. 静态前端改动直接刷新网页即可
 
-3. 复制环境变量模板：
-
-cp .env.example .env
-
-4. 编辑 .env，至少填入：
+### 第一步：本地开发后同步到 NAS
 
 ```bash
-HOST=0.0.0.0
-PORT=3481
-AI_REDRAW_PROVIDER=nanobanana_ai
-NANO_BANANA_API_KEY=your_key
+bash scripts/deploy-to-nas.sh
 ```
 
-5. 直接后台启动：
+这个脚本会把当前项目同步到：
 
-chmod +x scripts/deploy-nas.sh
-./scripts/deploy-nas.sh
+```text
+/Volumes/docker/AIredrawtool
+```
 
-6. 在局域网里访问：
+同步时会保留 NAS 上的 `.env` 和 `data/`，避免覆盖密钥和历史数据。
 
+### 第二步：NAS 上重新构建并启动
+
+在 NAS 的可视化 Docker 项目里，使用 `/Volumes/docker/AIredrawtool/docker-compose.yaml` 重新部署或重建即可。
+
+如果你在 NAS 上用命令行，等价操作是：
+
+```bash
+cd /Volumes/docker/AIredrawtool
+docker compose up -d --build
+```
+
+### 第三步：访问
+
+```text
 http://<NAS_IP>:3481/
-
-7. 如果 NAS 自带防火墙/端口转发，请放行 3481 端口。
+```
 
 ### 说明
 
-- 服务默认监听 0.0.0.0，便于从 NAS 局域网内的其他设备访问。
-- 如果你想换成别的端口，把 .env 里的 PORT 改掉即可。
-- 若后续需要长期运行，建议在 NAS 的任务计划或 PM2 中注册自启动。
+- 这套模式不会再从 GitHub 拉镜像。
+- GitHub 的作用只保留为代码备份。
+- 如果只改了前端静态文件，刷新浏览器即可；如果改了 `lib/*`、`server.js`、`routes/*` 或 `Dockerfile`，需要 NAS 重新 build 一次。
+- 如果想保留旧数据，`data/` 不会被同步脚本覆盖。
 
 ## 必填环境变量（最小）
 

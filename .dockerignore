@@ -7,3 +7,8 @@ npm-debug.log
 data
 Dockerfile*
 docker-compose*.yml
+docker-compose*.yaml
+.github
+docs
+archive
+MaocoLandWorkspace
