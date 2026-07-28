@@ -44,9 +44,17 @@ function readImageSize(url) {
   });
 }
 
+function apiUrl(path) {
+  const base = window.location.origin;
+  if (!base || base === 'null') return path;
+  return `${base}${path}`;
+}
+
 async function loadHistory() {
   try {
-    const res = await fetch('/api/tools/ai-redraw/history');
+    const res = await fetch(apiUrl('/api/tools/ai-redraw/history'), {
+      credentials: 'same-origin',
+    });
     const data = await res.json();
     const items = Array.isArray(data.items) ? data.items : [];
     historyList.innerHTML = '';
@@ -115,9 +123,10 @@ runBtn.addEventListener('click', async () => {
   runBtn.disabled = true;
 
   try {
-    const res = await fetch('/api/tools/ai-redraw', {
+    const res = await fetch(apiUrl('/api/tools/ai-redraw'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({
         imageBase64: payload.imageBase64,
         mimeType: payload.mimeType,
@@ -128,7 +137,7 @@ runBtn.addEventListener('click', async () => {
       }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || '请求失败');
+    if (!res.ok) throw new Error(data.error || `请求失败（${res.status}）`);
 
     const resultDataUrl = `data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`;
     outImg.src = resultDataUrl;
@@ -138,7 +147,10 @@ runBtn.addEventListener('click', async () => {
     setStatus('重绘完成');
     await loadHistory();
   } catch (err) {
-    setStatus(err.message || '重绘失败', true);
+    const detail = err instanceof Error ? err.message : String(err);
+    setStatus(detail === 'Failed to fetch'
+      ? '网络请求失败：请确认 NAS 服务是否已启动，且当前页面就是这个应用的站点地址'
+      : detail || '重绘失败', true);
   } finally {
     runBtn.disabled = false;
   }
