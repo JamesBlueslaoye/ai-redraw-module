@@ -95,7 +95,20 @@ router.post('/', requireAuth, async (req, res) => {
       historyItem,
     });
   } catch (err) {
-    res.status(err.status || 500).json({ error: err.message || '重绘失败' });
+    const detail = err instanceof Error ? err.message : String(err);
+    const providerStatus = nanoBanana.getStatus();
+    const providerLabel = providerStatus?.providerLabel || providerStatus?.provider || '当前线路';
+    const normalizedMessage = /fetch failed/i.test(detail)
+      ? `${providerLabel} 网络请求失败，请检查 NAS 外网访问和对应 API 配置`
+      : (detail || '重绘失败');
+
+    console.error('[ai-redraw] redraw failed:', {
+      provider: providerStatus?.provider || 'unknown',
+      message: detail,
+      stack: err instanceof Error ? err.stack : undefined,
+    });
+
+    res.status(err.status || 500).json({ error: normalizedMessage });
   }
 });
 
