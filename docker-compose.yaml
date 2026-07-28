@@ -16,6 +16,7 @@ services:
     ports:
       - "3481:3481"
     volumes:
+      - ./public:/app/public:ro
       - ai_redraw_data:/app/data
 
 volumes:

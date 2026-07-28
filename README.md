@@ -77,7 +77,8 @@ http://<NAS_IP>:3481/
 
 - 这套模式不会再从 GitHub 拉镜像。
 - GitHub 的作用只保留为代码备份。
-- 如果只改了前端静态文件，刷新浏览器即可；如果改了 `lib/*`、`server.js`、`routes/*` 或 `Dockerfile`，需要 NAS 重新 build 一次。
+- `public/*` 已通过挂载目录直接从 NAS 读取。只改前端静态文件时，同步到 NAS 后直接刷新浏览器即可，不需要重新部署。
+- 如果改了 `lib/*`、`server.js`、`routes/*`、`package.json`、`Dockerfile` 或 `docker-compose.yaml`，需要在 NAS 重新部署/重建一次。
 - 如果想保留旧数据，`data/` 不会被同步脚本覆盖。
 
 ## 必填环境变量（最小）
