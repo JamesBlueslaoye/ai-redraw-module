@@ -20,5 +20,9 @@ rsync -a --delete \
   --exclude '.DS_Store' \
   "$SOURCE_DIR/" "$TARGET_DIR/"
 
+rm -rf "$TARGET_DIR/.github"
+rm -rf "$TARGET_DIR/docs"
+rm -rf "$TARGET_DIR/source-snapshots"
+
 echo "Synced project to $TARGET_DIR"
 echo "Next: open the NAS project and run docker compose up -d --build"
