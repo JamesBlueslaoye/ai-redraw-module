@@ -14,7 +14,6 @@
 - public/ai-redraw.css：前端样式
 - server.js：最小可运行 Demo 服务
 - scripts/test-ai-redraw.js：命令行重绘连通性测试
-- source-snapshots/：原项目快照（用于对照迁移）
 
 ## 快速运行（独立 Demo）
 
